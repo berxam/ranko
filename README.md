@@ -4,10 +4,33 @@ Minimal framework for simple API creation with PHP. Launch your apps in the blin
 
 ## Installation
 
-Follow the instructions at the [apillo-starter](https://github.com/berxam/apillo-starter) repository to get started
 ```
-git clone https://github.com/berxam/apillo-starter.git
+git clone https://github.com/berxam/apillo.git
 ```
+
+Composer compatibility & [boilerplate project](https://github.com/berxam/apillo-starter) soon to become.
+
+## Usage
+```
+<?php
+
+require_once "../apillo/src/apillo.php";
+
+$app = new Apillo;
+
+$app->get("/", function ($res) {
+    $res->respond([
+        "msg" => "Hello world!"
+    ]);
+});
+
+$app->run();
+
+?>
+
+```
+
+See more at [berxam.com/apillo/docs]().
 
 ## Features
 

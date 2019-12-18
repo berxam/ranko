@@ -31,7 +31,6 @@ class Request {
     public function __construct ($base_URI = "") {
         $this->setURI($base_URI);
         $this->setParams();
-        $this->headers = getallheaders();
     }
 
     /**
@@ -68,16 +67,19 @@ class Request {
     }
 
     /**
-     * @param string $type Content-Type header
-     * @return string|boolean Content-Type header or whether it matches the $type.
+     * @return boolean Whether Contenty-Type: application/json is set.
      */
-    public function contentTypeIsJson (/* $type = NULL*/) {
-        if (!empty($this->headers['Content-Type'])) {
-            $contentType = $this->headers['Content-Type'];
+    public function contentTypeIsJson () {
+        $headers = getallheaders();
 
-            $typeRegEx = "/^application\/json.*$/";
-
-            return preg_match($typeRegEx, $this->headers['Content-Type']);
+        if (empty($headers['Content-Type'])) {
+            return false;
+        }
+        // We have a Content-Type so let's see if its JSON
+        else {
+            $contentType = $headers['Content-Type'];
+            $typeRegEx = "/^application\/json/";
+            return preg_match($typeRegEx, $contentType);
         }
     }
 

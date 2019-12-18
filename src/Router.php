@@ -21,19 +21,9 @@ class Router {
     }
     
     /**
-     * Adds route accessible by any HTTP method to routes.
-     *
-     * @param string    $path.
-     * @param callable  $ctrl Controller function.
-     */
-    public function any ($route, $controller) {
-        $this->addRoute("GET|POST|PUT|DELETE", $route, $ctrl);
-    }
-
-    /**
      * Adds route accessible by GET HTTP method to routes.
      *
-     * @param string    $path.
+     * @param string    $route URI pattern.
      * @param callable  $ctrl Controller function.
      */
     public function get ($route, $ctrl) {
@@ -43,7 +33,7 @@ class Router {
     /**
      * Adds route accessible by POST HTTP method to routes.
      *
-     * @param string    $path.
+     * @param string    $route URI pattern.
      * @param callable  $ctrl Controller function.
      */
     public function post ($route, $ctrl) {
@@ -53,21 +43,31 @@ class Router {
     /**
      * Adds route accessible by PUT HTTP method to routes.
      *
-     * @param string    $path.
+     * @param string    $route URI pattern.
      * @param callable  $ctrl Controller function.
      */
-    public function put ($path, $ctrl) {
+    public function put ($route, $ctrl) {
         $this->addRoute("PUT", $route, $ctrl);
     }
     
     /**
      * Adds route accessible by DELETE HTTP method to routes.
      *
-     * @param string    $path.
+     * @param string    $route URI pattern.
      * @param callable  $ctrl Controller function.
      */
     public function delete ($route, $ctrl) {
         $this->addRoute("DELETE", $route, $ctrl);
+    }
+
+    /**
+     * Adds route accessible by "any" HTTP method to routes.
+     *
+     * @param string    $route URI pattern.
+     * @param callable  $ctrl Controller function.
+     */
+    public function any ($route, $ctrl) {
+        $this->addRoute("GET|POST|PUT|DELETE", $route, $ctrl);
     }
     
     /**
