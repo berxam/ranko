@@ -1,7 +1,9 @@
 <?php
 
+namespace Ranko;
+
 /**
- * Dotenv - APILLO
+ * Dotenv - ranko
  * ----------------------------------------------
  * Very simple way to read .env file and add to
  * the $_ENV and getenv() superglobals.

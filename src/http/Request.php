@@ -1,7 +1,9 @@
 <?php
 
+namespace Ranko\Http;
+
 /**
- * Request - APILLO
+ * Request - ranko
  * ----------------------------------------------
  * Parses request data and gives access to it
  * via methods getURI() and params().

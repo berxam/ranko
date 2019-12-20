@@ -1,20 +1,16 @@
 <?php
 
-require_once __DIR__ . "/router.php";
-require_once __DIR__ . "/http/request.php";
-require_once __DIR__ . "/http/response.php";
-require_once __DIR__ . "/dotenv.php";
+namespace Ranko;
+
+use Ranko\Http\{ Request, Response };
+use Ranko\{ Router, Dotenv };
 
 /**
- * APILLO
+ * ranko
  * ----------------------------------------------
  * Minimal framework for quick API creation.
- * 
- * @see apillo/http/Request
- * @see apillo/http/Response
- * @link https://berxam.com/apillo
  */
-class Apillo extends Router {
+class Ranko extends Router {
 
     /**
      * @var Request Request object.
@@ -145,7 +141,7 @@ class Apillo extends Router {
                 
         // URI matched the requested URI
         if (preg_match_all('#^' . $pattern . '$#', $uri, $matches, PREG_OFFSET_CAPTURE)) {
-            // Rework matches to only contain the matches, not the orig string
+            // Rework matches to only contain the matches
             $matches = array_slice($matches, 1);
 
             // Define the map callback

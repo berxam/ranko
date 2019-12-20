@@ -1,7 +1,9 @@
 <?php
 
+namespace Ranko;
+
 /**
- * Router - APILLO
+ * Router - ranko
  * ----------------------------------------------
  * Holds an array of routes and their callbacks,
  * ability to work with the array.

@@ -1,7 +1,9 @@
 <?php
 
+namespace Ranko\Http;
+
 /**
- * Response - APILLO
+ * Response - ranko
  * ----------------------------------------------
  * Provides functionality to respond with JSON.
  */
@@ -53,6 +55,8 @@ class Response {
                 default:
                     $this->respond(["error" => "Incorrect file extension"], 404);
             }
+
+            exit;
         } else {
             $this->respond(["error" => "File doesn't exist"], 404);
         }

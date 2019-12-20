@@ -1,0 +1,10 @@
+{
+    "name": "berxam/ranko",
+    "description": "Minimal framework for simple API creation.",
+    "autoload": {
+        "psr-4": {
+            "Ranko\\": "src/"
+        }
+    },
+    "license": "Apache-2.0"
+}

@@ -1,40 +1,36 @@
-# APILLO - Microframework for webapps
+# ranko • micro framework for webapps
 
-Minimal framework for simple API creation with PHP. Launch your apps in the blink of an eye!
+Minimal framework for simple API or web app creation with PHP.
 
 ## Installation
 
+I recommend to get started with the [boilerplate project](https://github.com/berxam/ranko-starter), but you can also install via [Composer]().
 ```
-git clone https://github.com/berxam/apillo.git
+composer require berxam/ranko
 ```
-
-Composer compatibility & [boilerplate project](https://github.com/berxam/apillo-starter) soon to become.
 
 ## Usage
 ```
 <?php
 
-require_once "../apillo/src/apillo.php";
+require_once "./vendor/autoload.php";
 
-$app = new Apillo;
+$app = new ranko\Ranko;
 
 $app->get("/", function ($res) {
-    $res->respond([
-        "msg" => "Hello world!"
-    ]);
+    $res->respond(["msg" => "Hello world!"]);
 });
 
 $app->run();
 
 ?>
-
 ```
 
-See more at [berxam.com/apillo/docs]().
+See more at [berxam.com/ranko/docs]().
 
 ## Features
 
-Apillo combines a router with a neat set of helper methods for RESTful API development.
+Ranko combines a router with a neat set of helper methods for web app development.
 
 - dynamic routing to controller functions
 - easier request parameter access with ```params($key = null)```
