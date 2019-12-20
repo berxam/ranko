@@ -86,6 +86,16 @@ class Request {
     }
 
     /**
+     * Checks if the Accept header contains $type.
+     *
+     * @param string $type Content-Type, for example "text/html".
+     * @return string|false Rest of the header str after type or false.
+     */
+    public function accepts ($type) {
+        return strstr($_SERVER['HTTP_ACCEPT'], $type);
+    }
+
+    /**
      * Sets request URI as $this->uri and cleans it up.
      * 
      * If you set the project root in __construct(), it will
