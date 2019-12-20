@@ -4,9 +4,9 @@ Minimal framework for simple API or web app creation with PHP.
 
 ## Installation
 
-I recommend to get started with the [boilerplate project](https://github.com/berxam/ranko-starter), but you can also install via [Composer](https://getcomposer.org).
+Test the unstable version of this via [Composer](https://getcomposer.org)
 ```
-composer require berxam/ranko
+composer require berxam/ranko:dev-master
 ```
 
 ## Usage
