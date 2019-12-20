@@ -1,6 +1,13 @@
 {
     "name": "berxam/ranko",
     "description": "Minimal framework for simple API creation.",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Sami Bergman",
+            "role": "Developer"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Ranko\\": "src/"
