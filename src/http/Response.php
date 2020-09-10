@@ -5,61 +5,90 @@ namespace Ranko\Http;
 /**
  * Response - ranko
  * ----------------------------------------------
- * Provides functionality to respond with JSON.
+ * Provides functionality to respond.
  */
 class Response {
-    public static $JSON = 'Content-type: application/json; charset=utf-8';
-    public static $HTML = 'Content-type: text/html; charset=utf-8';
-
-    public static $STATUS_CODES = [
-        200 => '200 OK',
-        201 => '201 Created',
-        404 => '404 Not Found'
-    ];
 
     /**
-     * Exits PHP with a JSON response and proper headers.
+     * Exits PHP with a plain text response.
      *
-     * @param array|string $response PHP array or JSON string.
-     * @param int          $status   HTTP status code.
+     * @param string $response Text response.
+     * @param int    $status   Optional HTTP status code.
      */
-    public function respond ($response, $status = 200) {
-        header('HTTP/1.1 ' . self::$STATUS_CODES[$status]);
-        header(self::$JSON);
-
-        exit(json_encode($response));
+    public static function withText ($response, $status = 200) {
+        http_response_code($status);
+        header("Content-Type: text/plain; charset=utf-8");
+        echo $response;
+        exit;
     }
 
     /**
-     * Exits PHP with a HTML response and proper headers.
+     * Exits PHP with a JSON response.
      *
-     * @param array|string $file   PHP or HTML filepath.
-     * @param int          $status HTTP status code.
+     * @param mixed $response A json encodable response.
+     * @param int   $status   Optional HTTP status code.
      */
-    public function show ($file, $status = 200) {
-        header('HTTP/1.1 ' . self::$STATUS_CODES[$status]);
-        header(self::$HTML);
+    public static function withJSON ($response, $status = 200) {
+        http_response_code($status);
+        header("Content-Type: application/json; charset=utf-8");
+        echo json_encode($response);
+        exit;
+    }
 
-        // Check if file exists
-        if (file_exists($file)) {
-            // File exists, let's get its extension
-            $ext = pathinfo($file, PATHINFO_EXTENSION);
+    /**
+     * Exits PHP with a HTML response.
+     *
+     * @param string $response HTML string.
+     * @param int    $status   Optional HTTP status code.
+     */
+    public static function withHTML ($response, $status = 200) {
+        http_response_code($status);
+        header("Content-Type: text/html; charset=utf-8");
+        echo $response;
+        exit;
+    }
 
-            switch ($ext) {
-                case 'php':
-                    require_once $file;
-                    break;
-                case 'html':
-                    echo file_get_contents($file);
-                    break;
-                default:
-                    $this->respond(["error" => "Incorrect file extension"], 404);
-            }
+    /**
+     * Reads file and responds with it and proper headers.
+     *
+     * If it's a PHP file it will be required, otherwise
+     * it's echoed. Its Content-Type header is guessed
+     * based on the extension, but can be overridden.
+     * 
+     * @param string $file        PHP or HTML filepath.
+     * @param int    $status      Optional HTTP status code.
+     * @param string $contentType Optional HTTP Content-Type.
+     */
+    public static function withFile ($file, $status = 200, $contentType = null) {
+        $mime = is_null($contentType) ? mime_content_type($file) : $contentType;
 
-            exit;
-        } else {
-            $this->respond(["error" => "File doesn't exist"], 404);
+        http_response_code($status);
+        header("Content-Type: $mime; charset=utf-8");
+
+        if (!file_exists($file)) {
+            throw new Exception("Called `res::withFile` with nonexistent file.");
         }
+
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+        if ($ext === 'php') {
+            require $file;
+        } else {
+            echo file_get_contents($file);
+        }
+
+        exit;
+    }
+
+    /**
+     * Redirects by setting HTTP Location header and exitting.
+     *
+     * @param string $to     Location where we're redirecting.
+     * @param int    $status Optional. HTTP status code.
+     */
+    public function redirect ($to, $status = 302) {
+        header("Location: $to", true, $status);
+        exit;
     }
 }
 
