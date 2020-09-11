@@ -71,6 +71,7 @@ class Router {
      * @param Router $router
      */
     public function addRouter ($baseUrl, $router) {
+        if ($baseUrl === '/') $baseUrl = '';
         foreach ($router->routes as $url => $routes) {
             $this->routes[$baseUrl.$url] = $routes;
         }
