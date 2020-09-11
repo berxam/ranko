@@ -94,7 +94,7 @@ class Router {
             }
 
             foreach ($controllers as $controller) {
-                if (!is_callable($controller)) throw new InvalidArgumentException('Controller has to be callable');
+                if (!is_callable($controller)) throw new \InvalidArgumentException('Controller has to be callable');
                 $this->routes[$route][$method][] = $controller;
             }
         }

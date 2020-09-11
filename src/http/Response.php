@@ -66,7 +66,7 @@ class Response {
         header("Content-Type: $mime; charset=utf-8");
 
         if (!file_exists($file)) {
-            throw new Exception("Called `res::withFile` with nonexistent file.");
+            throw new \Exception("Called `res::withFile` with nonexistent file.");
         }
 
         $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));

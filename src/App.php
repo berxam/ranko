@@ -82,7 +82,7 @@ class App extends Router {
      * @param callable $fn Function to invoke.
      */
     public function setFourToFive ($fn) {
-        if (!is_callable($fn)) throw new InvalidArgumentException('Controller has to be callable');
+        if (!is_callable($fn)) throw new \InvalidArgumentException('Controller has to be callable');
         
         $this->fourToFive = $fn;
     }
