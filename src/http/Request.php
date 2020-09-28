@@ -20,7 +20,7 @@ class Request {
      * 
      * @param string $baseUrl Optional. Project root.
      */
-    public function __construct ($baseUrl = "") {
+    public function __construct (?string $baseUrl = "") {
         $this->setUrl($baseUrl);
         $this->setBody();
     }
@@ -34,16 +34,16 @@ class Request {
      * @param  string $key Optional key.
      * @return array|string Request headers with lowercased keys, or a value.
      */
-    public function getHeaders ($key = null) {
+    public function getHeaders (?string $key = null) {
         static $headers = [];
 
         if (empty($headers)) {
             $headers = array_change_key_case(getallheaders(), CASE_LOWER);
         }
 
-        return $key && !empty($headers[$key])
-            ? $headers[$key]
-            : $headers;
+        if ($key) return $headers[$key] ?? null;
+
+        return $headers;
     }
 
     /**
@@ -52,16 +52,12 @@ class Request {
      * @param   string $key Optional key.
      * @return  mixed Body as associative array or value from it.
      */
-    public function getBody ($key = null) {
+    public function getBody (?string $key = null) {
         if ($key) {
-            if (!empty($this->body[$key])) {
-                return $this->body[$key];
-            }
+            return $this->body[$key] ?? null;
         } else {
             return $this->body;
         }
-
-        return null;
     }
 
     /**
@@ -79,25 +75,38 @@ class Request {
     /**
      * Gets Accept-Language header and turns it into sorted PHP array.
      * 
-     * @return array Holds each language as array with keys "lang" and "q".
+     * @param string $lang Language code, for example "en-US".
+     * @return boolean
      */
-    public function acceptsLang ($lang = null) {
-        $acceptedLangs = $this->getHeaders('accept-language');
-        return self::parseAcceptHeader($acceptedLangs);
+    public function acceptsLang (string $lang): bool {
+        static $acceptedLangs = null;
+
+        if ($acceptedLangs === null) {
+            $acceptedLangs = self::parseAcceptHeader(
+                $this->getHeaders('accept-language')
+            );
+        }
+
+        return key_exists($lang, $acceptedLangs);
     }
 
     /**
      * Checks if the Accept header contains $type.
      *
      * @param string $type Content-Type, for example "text/html".
-     * @return string|false Rest of the header str after type or false.
+     * @return boolean
      */
-    public function accepts ($type = null) {
-        $accepteds = $this->getHeaders('accept');
-        return self::parseAcceptHeader($accepteds);
+    public function accepts (string $type): bool {
+        static $accept = null;
+
+        if ($accept === null) {
+            $accept = self::parseAcceptHeader($this->getHeaders('accept'));
+        }
+
+        return key_exists($type, $accept);
     }
 
-    private static function parseAcceptHeader ($str) {
+    private static function parseAcceptHeader (string $str): array {
         $parts = [];
 
         foreach (explode(",", $str) as $part) {
@@ -128,23 +137,32 @@ class Request {
      * 
      * @param string $baseUrl Optional. Project root.
      */
-    private function setUrl ($baseUrl = NULL) {
+    private function setUrl (?string $baseUrl = "") {
         $this->url = $_SERVER["REQUEST_URI"];
 
+        // Remove all GET parameters
+        $this->url = strtok($this->url, "?");
+
         // Remove user specified path
-        if ($baseUrl) {
-            $this->url = str_replace($baseUrl, "", $this->url);   
+        if (!empty($baseUrl)) {
+            $baseUrlPos = strpos($this->url, $baseUrl);
+            if ($baseUrlPos === 0) {
+                $this->url = substr_replace($this->url, "", $baseUrlPos, strlen($baseUrl));
+            }
         }
 
-        // Remove all GET parameters if there are any
-        if (strpos($this->url, "?") !== false) {
-            $this->url = strtok($this->url, "?");
+        // Remove name of called script (e.g. `index.php`) if starts with it
+        $parts = explode("/", $this->url);
+
+        if (strtolower($parts[1]) === strtolower(basename($_SERVER["SCRIPT_FILENAME"]))) {
+            $parts[1] = "";
+            if (count($parts) > 2) unset($parts[0]);
         }
 
-        // Remove ending slash if it's not the only char
-        if (substr($this->url, -1) == "/" && strlen($this->url) > 1) {
-            $this->url = substr_replace($this->url,"", -1);
-        }
+        // Remove trailing slash
+        if (end($parts) === "" && count($parts) > 2) array_pop($parts);
+
+        $this->url = implode("/", $parts);
     }
 
     /**
@@ -152,33 +170,24 @@ class Request {
      */
     private function setBody () {
         switch ($_SERVER["REQUEST_METHOD"]) {
+            case "HEAD":
             case "GET":
-                if (!empty($_GET)) $this->body = $_GET;
-                break;
-            case "POST":
-                if (empty($_POST)) {
-                    $this->readBody();
-                } else {
-                    $this->body = $_POST;
-                }
                 break;
             default:
-                $this->readBody();
+                if (!empty($_POST)) {
+                    $this->body = $_POST;
+                    break;
+                }
+        
+                $body = file_get_contents('php://input');
+        
+                if ($this->getContentType() === 'application/json') {
+                    $body = json_decode($body, true);
+                }
+        
+                if (!empty($body)) $this->body = $body;
                 break;
         }
-    }
-
-    /**
-     * Reads body to this->body if it has content.
-     */
-    private function readBody () {
-        $body = file_get_contents('php://input');
-
-        if ($this->contentType() === 'application/json') {
-            $body = json_decode($body, true);
-        }
-
-        if (!empty($body)) $this->body = $body;
     }
 }
 

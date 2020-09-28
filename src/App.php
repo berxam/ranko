@@ -23,18 +23,26 @@ class App extends Router {
      */
     private $fourToFive;
 
+    /** @var array Global middlewares invoked on every request. */
+    private $middleware = [];
+
     /**
      * Instantiate a Ranko application.
      * 
      * @param string $baseUrl The subfolder path to remove from request.
      */
-    public function __construct ($baseUrl = "") {
+    public function __construct (string $baseUrl = "") {
         $this->req = new Request($baseUrl);
         $this->res = new Response;
 
         $this->fourToFive = function ($status, $req, $res) {
-            $res->withJSON([ "error" => $status ], $status);
+            $res->withStatus($status)
+                ->sendJSON([ "error" => $status ]);
         };
+    }
+
+    public function use (callable ...$middleware) {
+        array_push($this->middleware, ...$middleware);
     }
 
     /**
@@ -43,36 +51,39 @@ class App extends Router {
     public function run () {
         $match = $this->checkRoutes();
 
-        if ($match === false) {
-            return call_user_func_array($this->fourToFive, [
-                404, $this->req, $this->res
-            ]);
-        }
+        if ($match === false) return $this->callFourToFive(404);
 
         [$controllers, $placeholders] = $match;
+        $this->req->params = $placeholders;
         $availableMethods = array_keys($controllers);
-        header("Access-Control-Allow-Methods: "
-            .implode(', ', $availableMethods));
+        header("Access-Control-Allow-Methods: ".implode(', ', $availableMethods));
 
         if (!in_array($_SERVER['REQUEST_METHOD'], $availableMethods)) {
-            return call_user_func_array($this->fourToFive, [
-                405, $this->req, $this->res
-            ]);
+            return $this->callFourToFive(405);
         }
 
         $methodControllers = $controllers[$_SERVER['REQUEST_METHOD']];
 
-        try {
-            foreach ($methodControllers as $controller) {
-                call_user_func_array($controller, [
-                    $this->req, $this->res, $placeholders
-                ]);
+        $stack = array_merge($this->middleware, $methodControllers);
+        $next = \Closure::bind(function () use ($stack, &$next) {
+            static $i = 0;
+
+            if ($fn = $stack[$i++] ?? null) {
+                try {
+                    call_user_func($fn, $this->req, $this->res, $next);
+                } catch (\Throwable $th) {
+                    $this->callFourToFive($th->statusCode ?? 500);
+                }
+            } else {
+                trigger_error("Called `next` from last middleware of stack. This is a no-op.", E_USER_NOTICE);
             }
-        } catch (Throwable $th) {
-            call_user_func_array($this->fourToFive, [
-                500, $this->req, $this->res
-            ]);
-        }
+        }, $this);
+
+        $next();
+    }
+
+    private function callFourToFive (int $status) {
+        return call_user_func($this->fourToFive, $status, $this->req, $this->res);
     }
 
     /**
@@ -81,9 +92,7 @@ class App extends Router {
      *
      * @param callable $fn Function to invoke.
      */
-    public function setFourToFive ($fn) {
-        if (!is_callable($fn)) throw new \InvalidArgumentException('Controller has to be callable');
-        
+    public function setFourToFive (callable $fn) {
         $this->fourToFive = $fn;
     }
 
@@ -94,7 +103,7 @@ class App extends Router {
      */
     private function checkRoutes () {
         foreach ($this->routes as $route => $controllers) {
-            $match = self::matchTemplate($route, $this->req->url);
+            $match = parent::matchTemplate($route, $this->req->url);
 
             if ($match !== false) {
                 return [ $controllers, $match ];

@@ -19,7 +19,7 @@ class Router {
      * @param string    $route URL pattern.
      * @param callable  ...$controllers Controller function.
      */
-    public function get ($route, ...$controllers) {
+    public function get (string $route, callable ...$controllers) {
         $this->addRoute("GET", $route, ...$controllers);
     }
     
@@ -29,7 +29,7 @@ class Router {
      * @param string    $route URL pattern.
      * @param callable  ...$controllers Controller function.
      */
-    public function post ($route, ...$controllers) {
+    public function post (string $route, callable ...$controllers) {
         $this->addRoute("POST", $route, ...$controllers);
     }
 
@@ -39,7 +39,7 @@ class Router {
      * @param string    $route URL pattern.
      * @param callable  ...$controllers Controller function.
      */
-    public function put ($route, ...$controllers) {
+    public function put (string $route, callable ...$controllers) {
         $this->addRoute("PUT", $route, ...$controllers);
     }
     
@@ -49,7 +49,7 @@ class Router {
      * @param string    $route URL pattern.
      * @param callable  ...$controllers Controller function.
      */
-    public function delete ($route, ...$controllers) {
+    public function delete (string $route, callable ...$controllers) {
         $this->addRoute("DELETE", $route, ...$controllers);
     }
 
@@ -59,7 +59,7 @@ class Router {
      * @param string    $route URL pattern.
      * @param callable  ...$controllers Controller function.
      */
-    public function any ($route, ...$controllers) {
+    public function any (string $route, callable ...$controllers) {
         $this->addRoute(
             "GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH",
             $route, ...$controllers
@@ -70,7 +70,7 @@ class Router {
      * @param string $baseUrl
      * @param Router $router
      */
-    public function addRouter ($baseUrl, $router) {
+    public function addRouter (string $baseUrl, Router $router) {
         if ($baseUrl === '/') $baseUrl = '';
         foreach ($router->routes as $url => $routes) {
             $this->routes[$baseUrl.$url] = $routes;
@@ -84,7 +84,7 @@ class Router {
      * @param string   $route   Expected URL path.
      * @param callable ...$controllers   Controller to execute.
      */
-    public function addRoute ($methods, $route, ...$controllers) {
+    public function addRoute (string $methods, string $route, callable ...$controllers) {
         if (!isset($this->routes[$route])) {
             $this->routes[$route] = [];
         }
@@ -95,7 +95,6 @@ class Router {
             }
 
             foreach ($controllers as $controller) {
-                if (!is_callable($controller)) throw new \InvalidArgumentException('Controller has to be callable');
                 $this->routes[$route][$method][] = $controller;
             }
         }
@@ -112,10 +111,11 @@ class Router {
      *      as an associative array like [ "id" => "42" ], otherwise return
      *      value will be boolean based on success to match.
      */
-    public static function matchTemplate ($template, $url, $caseSensitive = false) {
+    public static function matchTemplate (
+            string $template, string $url, bool $caseSensitive = false)/*: mixed */{
         $templatePieces = explode("/", $template);
         $urlPieces = explode("/", $url);
-        
+
         if (count($templatePieces) !== count($urlPieces)) return false;
 
         $placeholders = [];

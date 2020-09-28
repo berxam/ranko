@@ -9,75 +9,58 @@ namespace Ranko\Http;
  */
 class Response {
 
+    public function withStatus (int $code) {
+        http_response_code($code);
+        return $this;
+    }
+
+    public static function sendStatus (int $code) {
+        http_response_code($code);
+    }
+
     /**
-     * Exits PHP with a plain text response.
+     * Outputs a plain text response.
      *
      * @param string $response Text response.
-     * @param int    $status   Optional HTTP status code.
      */
-    public static function withText ($response, $status = 200) {
-        http_response_code($status);
+    public static function sendText (string $response) {
         header("Content-Type: text/plain; charset=utf-8");
         echo $response;
-        exit;
     }
 
     /**
-     * Exits PHP with a JSON response.
+     * Outputs a JSON response.
      *
      * @param mixed $response A json encodable response.
-     * @param int   $status   Optional HTTP status code.
      */
-    public static function withJSON ($response, $status = 200) {
-        http_response_code($status);
+    public static function sendJSON (/*mixed*/ $response) {
         header("Content-Type: application/json; charset=utf-8");
         echo json_encode($response);
-        exit;
     }
 
     /**
-     * Exits PHP with a HTML response.
+     * Outputs a HTML response.
      *
      * @param string $response HTML string.
-     * @param int    $status   Optional HTTP status code.
      */
-    public static function withHTML ($response, $status = 200) {
-        http_response_code($status);
+    public static function sendHTML (string $response) {
         header("Content-Type: text/html; charset=utf-8");
         echo $response;
-        exit;
     }
 
     /**
-     * Reads file and responds with it and proper headers.
-     *
-     * If it's a PHP file it will be required, otherwise
-     * it's echoed. Its Content-Type header is guessed
-     * based on the extension, but can be overridden.
+     * Render a view.
      * 
-     * @param string $file        PHP or HTML filepath.
-     * @param int    $status      Optional HTTP status code.
-     * @param string $contentType Optional HTTP Content-Type.
+     * @param string $view     Path of PHP file.
+     * @param mixed ...$params Params passed on to the view.
      */
-    public static function withFile ($file, $status = 200, $contentType = null) {
-        $mime = is_null($contentType) ? mime_content_type($file) : $contentType;
+    public static function render (string $view, /*mixed*/...$params) {
+        $export = require $view;
+        if (!is_callable($export))
+            throw new \Exception("A view file must return a function.");
 
-        http_response_code($status);
-        header("Content-Type: $mime; charset=utf-8");
-
-        if (!file_exists($file)) {
-            throw new \Exception("Called `res::withFile` with nonexistent file.");
-        }
-
-        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-
-        if ($ext === 'php') {
-            require $file;
-        } else {
-            echo file_get_contents($file);
-        }
-
-        exit;
+        header("Content-Type: text/html; charset=utf-8");
+        return call_user_func($export, ...$params);
     }
 
     /**
@@ -86,7 +69,7 @@ class Response {
      * @param string $to     Location where we're redirecting.
      * @param int    $status Optional. HTTP status code.
      */
-    public function redirect ($to, $status = 302) {
+    public function redirect (string $to, int $status = 302) {
         header("Location: $to", true, $status);
         exit;
     }
